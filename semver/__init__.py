@@ -644,16 +644,12 @@ class Comparator(object):
             return cmp(version, self.operator, self.semver, self.loose)
 
 
-def make_range(range_, loose):
-    if isinstance(range_, Range) and range_.loose == loose:
-        return range_
-
-    # if (!(this instanceof Range))
-    #    return new Range(range, loose);
-    return Range(range_, loose)
-
-
 class Range(object):
+    def __new__(cls, range_, loose):
+        if isinstance(range_, Range) and range_.loose == loose:
+            return range_
+        return super().__new__(cls)
+
     def __init__(self, range_, loose):
         self.loose = loose
         #  First, split based on boolean or ||
@@ -731,7 +727,7 @@ class Range(object):
 #  Mostly just for testing and legacy API reasons
 def to_comparators(range_, loose):
     return [" ".join([c.value for c in comp]).strip().split(" ")
-            for comp in make_range(range_, loose).set]
+            for comp in Range(range_, loose).set]
 
 
 #  comprised of xranges, tildes, stars, and gtlt's at this point.
@@ -987,7 +983,7 @@ def test_set(set_, version):
 
 def satisfies(version, range_, loose=False):
     try:
-        range_ = make_range(range_, loose)
+        range_ = Range(range_, loose)
     except Exception as e:
         return False
     return range_.test(version)
@@ -995,7 +991,7 @@ def satisfies(version, range_, loose=False):
 
 def max_satisfying(versions, range_, loose=False):
     try:
-        range_ob = make_range(range_, loose=loose)
+        range_ob = Range(range_, loose=loose)
     except:
         return None
     max_ = None
@@ -1012,7 +1008,7 @@ def valid_range(range_, loose):
     try:
         #  Return '*' instead of '' so that truthiness works.
         #  This will throw if it's invalid anyway
-        return make_range(range_, loose).range or "*"
+        return Range(range_, loose).range or "*"
     except:
         return None
 
@@ -1029,7 +1025,7 @@ def rtr(version, range_, loose):
 
 def outside(version, range_, hilo, loose):
     version = make_semver(version, loose)
-    range_ = make_range(range_, loose)
+    range_ = Range(range_, loose)
 
     if hilo == ">":
         gtfn = gt

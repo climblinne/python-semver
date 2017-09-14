@@ -39,9 +39,9 @@ cands = [
 @pytest.mark.parametrize("loose, comps", cands)
 def test_it_for_range(loose, comps):
     import pytest
-    from semver import make_range
+    from semver import Range
 
     with pytest.raises(ValueError):
-        make_range(loose, False)
+        Range(loose, False)
 
-    assert make_range(loose, True).range == comps
+    assert Range(loose, True).range == comps
